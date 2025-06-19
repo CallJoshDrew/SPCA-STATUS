@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPCA Sandakan Stray Dog Crisis Infographic</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .section-card {
+            background: white;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease-in-out;
+        }
+        .section-card:hover {
+            transform: translateY(-5px);
+        }
+        .bar-container {
+            background-color: #e0e0e0;
+            border-radius: 9999px; /* Fully rounded */
+            height: 1.5rem;
+            overflow: hidden;
+        }
+        .bar-fill {
+            background-color: #6d28d9; /* Deep purple */
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-out;
+        }
+        /* Custom styles for the monthly charts to ensure proper display and responsiveness */
+        .chart-container-wrapper { /* Renamed for clarity - this is the container for the chart itself within the section */
+            width: 100%;
+            height: 48; /* Adjusted to be consistent with React component's height utility */
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); /* shadow-inner */
+            border: 1px solid #e5e7eb; /* border border-gray-200 */
+            padding: 1rem; /* p-4 */
+        }
+        .chart-area-wrapper {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            align-items: flex-end;
+            justify-content: flex-start; /* Align bars to the start for proper scrolling */
+            position: relative;
+            padding-bottom: 0.5rem; /* pb-2 */
+            overflow-x: auto; /* Enable horizontal scrolling for the bars and their dates */
+            border-bottom: 1px solid #d1d5db; /* border-b border-gray-300 */
+        }
+        .y-axis-labels {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-right: 0.5rem; /* pr-2 */
+            font-size: 0.75rem; /* text-xs */
+            color: #6b7280; /* text-gray-500 */
+            transform: translateX(-100%); /* Move outside the main content flow */
+            padding-left: 1rem; /* pl-4 */
+        }
+        .chart-bars-and-labels-container { /* New container for bars AND their labels for combined scrolling */
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start; /* Align to start for scrolling */
+            flex-grow: 0;
+            flex-shrink: 0;
+            padding-left: 1rem; /* px-4 for internal content */
+            padding-right: 1rem; /* px-4 for internal content */
+        }
+        .bar-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 0.25rem; /* mx-1 */
+            height: 100%; /* Take full height of parent chart-bars-and-labels-container */
+            justify-content: flex-end;
+            flex-shrink: 0; /* Important to prevent shrinking */
+        }
+        .chart-bar {
+            background-color: #8b5cf6; /* bg-purple-600 */
+            border-top-left-radius: 0.25rem; /* rounded-t-lg */
+            border-top-right-radius: 0.25rem; /* rounded-t-lg */
+            width: 100%;
+            transition: all 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Align content to bottom */
+            align-items: center;
+            color: white; /* text-white */
+            font-weight: 700; /* font-bold */
+            font-size: 0.75rem; /* text-xs */
+            position: relative; /* For text positioning if needed */
+        }
+        .chart-bar:hover {
+            background-color: #6d28d9; /* hover:bg-purple-800 */
+        }
+        .bar-value {
+            margin-bottom: 0.25rem; /* mb-1 */
+        }
+        .date-label {
+            font-size: 0.75rem; /* text-xs */
+            color: #4b5563; /* text-gray-700 */
+            font-weight: 500; /* font-medium */
+            text-align: center;
+            margin-top: 0.25rem; /* mt-1 */
+        }
+
+        /* Styles for the overall trend chart */
+        .month-bar-chart {
+            height: 100px; /* Fixed height for the chart container */
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between; /* Adjusted to space-between for proper alignment */
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            background-color: #f5f3ff; /* bg-purple-50 */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
+        }
+        .month-bar {
+            background-color: #8b5cf6; /* A nice purple for bars */
+            width: 18%; /* Adjust based on number of bars for even spacing */
+            margin: 0 1%; /* Spacing between bars */
+            border-radius: 0.5rem 0.5rem 0 0; /* Rounded top corners */
+            transition: height 0.5s ease-out, background-color 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding-bottom: 5px; /* Space for text inside bar */
+        }
+        .month-bar:hover {
+            background-color: #6d28d9; /* Darker purple on hover */
+        }
+        .month-label-container {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            margin-top: 0.25rem; /* mt-2 */
+            font-size: 0.75rem; /* text-xs */
+            color: #4b5563; /* text-gray-700 */
+            font-weight: 600; /* font-semibold */
+            text-align: center;
+        }
+        .month-label {
+            width: 18%; /* Match bar width for alignment */
+            margin: 0 1%; /* Match bar margin for alignment */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-100 to-pink-100 text-gray-800 p-6 sm:p-10">
+
+    <header class="text-left sm:text-center mb-12">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-purple-800 leading-tight mb-4 animate-fade-in-down text-left sm:text-center">
+            The Hidden Burden: Sandakan's Stray Dogs
+        </h1>
+        <p class="text-lg sm:text-xl md:text-2xl text-purple-600 font-semibold animate-fade-in-up text-left sm:text-center">
+            Exposing the Negligence & Irresponsibility of Majlis Perbandaran Sandakan (MPS)
+        </p>
+        <div class="mt-6 flex justify-start sm:justify-center items-center space-x-4">
+            <span class="text-4xl">🐶</span>
+            <span class="text-4xl text-yellow-500">😔</span>
+            <span class="text-4xl">🏠</span>
+        </div>
+    </header>
+
+    <!-- SPCA Overview -->
+    <section class="section-card max-w-4xl mx-auto">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">SPCA Sandakan: An NGO Overwhelmed</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div class="p-4 rounded-xl bg-purple-50 hover:bg-purple-100 transition-colors">
+                <p class="text-2xl sm:text-3xl font-bold text-purple-800 mb-2">NGO</p>
+                <p class="text-base sm:text-lg text-gray-600">Non-Government Funded</p>
+            </div>
+            <div class="p-4 rounded-xl bg-green-50 hover:bg-green-100 transition-colors">
+                <p class="text-2xl sm:text-3xl font-bold text-green-800 mb-2" id="spcaMonthlyExpenses">RM40,000+</p>
+                <p class="text-base sm:text-lg text-gray-600">Monthly Expenses</p>
+            </div>
+            <div class="p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors">
+                <p class="text-2xl sm:text-3xl font-bold text-blue-800 mb-2" id="spcaStaff">7 full-time staff</p>
+                <p class="text-base sm:text-lg text-gray-600">Dedicated Staff</p>
+            </div>
+        </div>
+        <p class="mt-8 text-left sm:text-center text-lg sm:text-xl text-gray-700 font-medium">
+            As of <span class="font-extrabold text-purple-700" id="initialPopulationDate">20th Jun 2025</span>, SPCA Sandakan was already caring for <span class="font-extrabold text-red-600" id="initialPopulationNumberText">estimated 900+</span> dogs.
+        </p>
+    </section>
+
+    <!-- The Problem with MPS -->
+    <section class="section-card max-w-4xl mx-auto">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">MPS's "Clean City" Strategy: A Burden, Not a Solution</h2>
+        <div class="flex flex-col md:flex-row items-center justify-around text-center gap-6">
+            <div class="flex-1 p-4 rounded-xl bg-red-50">
+                <p class="text-3xl sm:text-4xl mb-3">🚫💰</p>
+                <p class="font-semibold text-base sm:text-lg text-gray-700">ZERO Financial Aid</p>
+            </div>
+            <div class="flex-1 p-4 rounded-xl bg-red-50">
+                <p class="text-3xl sm:text-4xl mb-3">↩️❌</p>
+                <p class="font-semibold text-base sm:text-lg text-gray-700">No Returns Allowed</p>
+            </div>
+            <div class="flex-1 p-4 rounded-xl bg-red-50">
+                <p class="text-3xl sm:text-4xl mb-3">🛑🤝</p>
+                <p class="font-semibold text-base sm:text-lg text-gray-700">Ignoring Collaboration</p>
+            </div>
+        </div>
+        <p class="mt-8 text-left text-base sm:text-lg text-gray-700">
+            MPS captures stray dogs to make Sandakan look "clean" but consistently sends them to SPCA without providing any support, funding, or allowing dogs to be returned. This transfers their responsibility to a non-profit organization already at its limits.
+        </p>
+    </section>
+
+    <!-- Cumulative Numbers & Monthly Charts -->
+    <section class="section-card max-w-4xl mx-auto">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">The Escalating Crisis: Animals Dumped at SPCA</h2>
+        <div class="text-left sm:text-center mb-8">
+            <p class="text-xl sm:text-2xl font-bold text-gray-700">Total dogs captured and sent to SPCA (Feb - Jun 19th):</p>
+            <p class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-purple-900 leading-none my-4" id="totalCapturedOverall">0 <span class="text-2xl sm:text-3xl">dogs</span></p>
+            <p class="text-lg sm:text-xl font-bold text-gray-700 mt-4">
+                Estimated Current SPCA Population: <span class="text-purple-900" id="estimatedCurrentTotalText">980 + dogs + cats</span>
+            </p>
+            <div class="bar-container mt-6">
+                <div class="bar-fill" id="capacityBarFill" style="width: 0%;"></div>
+            </div>
+            <p class="text-xs sm:text-sm text-gray-500 mt-2">Capacity visual based on an approximate 850 animal capacity.</p>
+        </div>
+
+        <!-- Dogs Captured Per Month (Overall Trend) - Original chart -->
+        <h3 class="text-left sm:text-center text-2xl font-bold text-purple-700 mb-4">Dogs Captured Per Month (Overall Trend)</h3>
+        <div id="overallTrendChart" class="month-bar-chart">
+            <!-- Chart will be dynamically generated here -->
+        </div>
+        <div id="overallTrendLabels" class="month-label-container">
+            <!-- Labels will be dynamically generated here -->
+        </div>
+    </section>
+
+    <!-- Detailed Monthly Influx: Charts for March, April, May, June -->
+    <section class="section-card max-w-4xl mx-auto">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">Detailed Monthly Influx: The Numbers Don't Lie</h2>
+        <div id="detailedMonthlyInfluxCharts">
+            <!-- Detailed monthly charts will be dynamically generated here -->
+        </div>
+    </section>
+
+    <!-- Mass Neutering Program -->
+    <section class="section-card max-w-4xl mx-auto">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">MASS NEUTERING PROGRAM – OFFICIALLY STARTED!</h2>
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-100 p-6 rounded-xl shadow-lg mb-8 text-left">
+            <p class="text-base sm:text-xl font-semibold text-yellow-800 mb-4">
+                We’re LIVE! Our veterinary partners, <span class="font-bold">NN Animal Clinic Sandakan and Dr Randolf Paza from KK</span>, have joined forces with us to make this lifesaving mission a reality! With their expertise and compassion, we’ve finalized our neutering schedule (<a href="https://www.facebook.com/SPCAsandakan/" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">follow SPCA Facebook page</a>), and operations are now underway.
+            </p>
+            <h3 class="text-left sm:text-left text-2xl font-bold text-yellow-800 mb-3">Why This Matters:</h3>
+            <ul class="text-left text-base sm:text-lg text-gray-800 list-disc list-inside">
+                <li class="mb-2"><span class="font-bold">RM 180 = One less suffering stray</span></li>
+                <li class="mb-2">Breaks the cycle of abandonment and hunger.</li>
+                <li>Creates healthier, happier street animals.</li>
+            </ul>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-left">
+            <div>
+                <h3 class="text-left sm:text-left text-2xl font-semibold text-purple-600 mb-4">We Still Need YOUR Help!</h3>
+                <p class="text-base sm:text-lg text-gray-700 mb-4">
+                    Government? None. Funding? Only from kind hearts like yours. Every single RM 180 sponsors a dog’s chance at a better life.
+                </p>
+                <p class="text-xl sm:text-2xl font-bold text-green-700 bg-green-50 p-3 rounded-lg text-center inline-block">
+                    Maybank 560166133482 <span class="font-normal text-base sm:text-lg">(medication account)</span>
+                </p>
+            </div>
+            <div>
+                <h3 class="text-left sm:text-left text-2xl font-semibold text-purple-600 mb-4">How to Support:</h3>
+                <p class="text-base sm:text-lg text-gray-700 mb-2">Sponsor a surgery (RM 180/dog).</p>
+                <p class="text-base sm:text-lg text-gray-700 mb-2">Share this post – Visibility = More lives saved!</p>
+                <p class="text-base sm:text-lg text-gray-700">Tag friends/businesses – Let’s grow this effort!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demand for MPS Section -->
+    <section class="section-card max-w-4xl mx-auto text-left">
+        <h2 class="text-left sm:text-center text-3xl font-bold text-purple-700 mb-6">What Can Be Done? A Call for Responsibility</h2>
+        <div class="grid grid-cols-1 gap-8 mb-8">
+            <div>
+                <h3 class="text-left sm:text-left text-2xl font-semibold text-purple-600 mb-4">To Majlis Perbandaran Sandakan (MPS):</h3>
+                <ul class="text-left text-base sm:text-lg text-gray-700 list-disc list-inside">
+                    <li class="mb-2">Provide financial aid & funding to SPCA.</li>
+                    <li class="mb-2">Implement humane stray animal management (e.g., Trap-Neuter-Release).</li>
+                    <li class="mb-2">Establish a proper government-funded shelter.</li>
+                    <li>Collaborate with NGOs, don't burden them.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center text-gray-500 text-sm mt-12">
+        &copy; 2025 SPCA Sandakan Advocacy. All rights reserved.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthlyData = [
+                { month: 'Feb 2025', total: 43, details: [] },
+                {
+                    month: 'Mar 2025',
+                    total: 15,
+                    details: [
+                        { date: '21st', dogs: 4, location: 'N/A' },
+                        { date: '24th', dogs: 4, location: 'Bandar Leila' },
+                        { date: '25th', dogs: 3, location: 'Apartment Taman Pertama' },
+                        { date: '26th', dogs: 1, location: 'MPS' },
+                        { date: '28th', dogs: 3, location: 'Taman Permai' },
+                    ],
+                },
+                {
+                    month: 'Apr 2025',
+                    total: 66,
+                    details: [
+                        { date: '7th', dogs: 4, location: 'Taman Maju Phase 2 & Pangsapuri PDRM' },
+                        { date: '8th', dogs: 4, location: 'PPR Taman Harmony' },
+                        { date: '9th', dogs: 2, location: 'Taman Megah Jaya' },
+                        { date: '11th', dogs: 3, location: 'Taman Mutiara' },
+                        { date: '14th', dogs: 4, location: 'SM Sung Siew Sandakan' },
+                        { date: '15th', dogs: 7, location: 'Tinosa 2 Batu 7' },
+                        { date: '16th', dogs: 2, location: 'Hospital Sandakan' },
+                        { date: '17th', dogs: 5, location: 'Apartment Taman Mawar' },
+                        { date: '21st', dogs: 5, location: 'Kampung Sungai Obar' },
+                        { date: '22nd', dogs: 9, location: 'MU Market & Servay Market Mile 8' },
+                        { date: '25th', dogs: 11, location: 'PPR Lintas Sibuga' },
+                        { date: '29th', dogs: 2, location: 'Pasar Kim Fung Mile 4' },
+                        { date: '30th', dogs: 8, location: 'Kampung Sundang Laut' },
+                    ],
+                },
+                {
+                    month: 'May 2025',
+                    total: 131,
+                    details: [
+                        { date: '2nd', dogs: 2, location: 'Kem Tentera Mile 7' },
+                        { date: '3rd', dogs: 5, location: 'Taman Rimbayu Indah' },
+                        { date: '5th', dogs: 7, location: 'Bandar Ramai Ramai' },
+                        { date: '6th', dogs: 4, location: 'PPR Taman Batu Putih' },
+                        { date: '7th', dogs: 4, location: 'Taman Bahagia & Taman Rimba' },
+                        { date: '8th', dogs: 3, location: 'Taman Maju Taman Casa San Uno' },
+                        { date: '9th', dogs: 8, location: 'Tinusa 1' },
+                        { date: '10th', dogs: 7, location: 'Taman Harmoni' },
+                        { date: '13th', dogs: 3, location: 'SMK Tinusa & Taman FMAS' },
+                        { date: '14th', dogs: 6, location: 'Taman Yeng Seng' },
+                        { date: '15th', dogs: 4, location: 'Taman Tinusa 2' },
+                        { date: '20th', dogs: 4, location: 'Taman Mutiara' },
+                        { date: '21st', dogs: 7, location: 'Taman Mawar Apartment Car Wash' },
+                        { date: '22nd', dogs: 2, location: 'Taman Vun Wu' },
+                        { date: '23rd', dogs: 13, location: 'Taman Airport' },
+                        { date: '24th', dogs: 7, location: 'Seri Labuk, Jalan Kampung Melayu Batu 8 & Taman Indah Jaya Mydin Sejati Utama' },
+                        { date: '26th', dogs: 5, location: 'Sunny Estate' },
+                        { date: '27th', dogs: 3, location: 'Taman Nuri & Taman Merpati' },
+                        { date: '28th', dogs: 4, location: 'PPR Taman Batu Sapi' },
+                        { date: '29th', dogs: 3, location: 'Mega Jaya' },
+                    ],
+                },
+                {
+                    month: 'Jun 2025 (as of 19th)',
+                    total: 60,
+                    details: [
+                        { date: '3rd', dogs: 5, location: 'Kampung Sim Sim' },
+                        { date: '4th', dogs: 1, location: 'Midtown' },
+                        { date: '5th', dogs: 2, location: 'Balai Bomba & Taman Anggerik' },
+                        { date: '6th', dogs: 3, location: 'Taman Sejati Ujana' },
+                        { date: '9th', dogs: 2, location: 'Kampung Gelam' },
+                        { date: '10th', dogs: 5, location: 'Batu Putih Batu 7' },
+                        { date: '11th', dogs: 3, location: 'Taman Bersatu' },
+                        { date: '12th', dogs: 9, location: 'Sim Sim Jambatan 2' },
+                        { date: '13th', dogs: 2, location: 'Taman Alam Indah' },
+                        { date: '14th', dogs: 7, location: 'Bandar Labuk Jaya' },
+                        { date: '16th', dogs: 10, location: 'PPR Lintas Sibuga' },
+                        { date: '18th', dogs: 9, location: 'Astana Heights' },
+                        { date: '19th', dogs: 2, location: 'Masjid Alamin Batu 3' },
+                    ],
+                },
+            ];
+
+            const initialPopulationNumberForCalc = 900;
+            const estimatedCurrentTotalForCapacity = 980;
+            const baseCapacity = 850;
+
+            // Update static elements
+            const totalCapturedOverall = monthlyData.reduce((sum, month) => sum + month.total, 0);
+            document.getElementById('totalCapturedOverall').innerHTML = `${totalCapturedOverall} <span class="text-2xl sm:text-3xl">dogs</span>`;
+            document.getElementById('capacityBarFill').style.width = `${Math.min(100, (estimatedCurrentTotalForCapacity / baseCapacity) * 100)}%`;
+
+            // Function to create a bar chart
+            // Now accepts an element or an ID string for the container
+            function createBarChart(containerParam, data, isDetailedChart = false) {
+                let container;
+                if (typeof containerParam === 'string') {
+                    container = document.getElementById(containerParam);
+                } else {
+                    container = containerParam; // It's already an element
+                }
+
+                if (!container) {
+                    console.error('Chart container not found:', containerParam);
+                    return;
+                }
+
+                // Clear previous content
+                container.innerHTML = '';
+
+                // Determine max value for scaling
+                const maxVal = Math.max(...data.map(d => isDetailedChart ? d.dogs : d.total), 1);
+                const chartYAxisMax = maxVal > 5 ? maxVal + Math.ceil(maxVal * 0.1) : Math.max(maxVal + 2, 5);
+
+                // For overall trend chart
+                if (!isDetailedChart) {
+                    data.forEach(entry => {
+                        const bar = document.createElement('div');
+                        bar.className = 'month-bar';
+                        bar.style.height = `${(entry.total / chartYAxisMax) * 90 + 10}px`; // Scale height, min 10px
+                        bar.title = `${entry.month}: ${entry.total} dogs`;
+
+                        const span = document.createElement('span');
+                        span.className = 'self-start mt-1';
+                        span.textContent = entry.total;
+                        bar.appendChild(span);
+                        container.appendChild(bar);
+                    });
+
+                    // Create labels for overall trend chart
+                    const labelContainer = document.getElementById('overallTrendLabels');
+                    labelContainer.innerHTML = '';
+                    data.forEach(entry => {
+                        const span = document.createElement('span');
+                        span.className = 'month-label';
+                        span.textContent = entry.month.split(' ')[0];
+                        labelContainer.appendChild(span);
+                    });
+
+                } else { // For detailed monthly charts
+                    const chartWrapper = document.createElement('div');
+                    chartWrapper.className = 'chart-container-wrapper'; // Use the new class
+
+                    const chartAreaWrapper = document.createElement('div');
+                    chartAreaWrapper.className = 'chart-area-wrapper';
+
+                    // Y-axis labels
+                    const yAxisLabels = document.createElement('div');
+                    yAxisLabels.className = 'y-axis-labels';
+                    yAxisLabels.innerHTML = `<span>${chartYAxisMax}</span><span>${Math.round(chartYAxisMax / 2)}</span><span>0</span>`;
+                    chartAreaWrapper.appendChild(yAxisLabels);
+
+                    const minBarUnitWidthPx = 50;
+                    const barSpacingPx = 8; // mx-1
+                    const totalContentWidth = data.length * (minBarUnitWidthPx + barSpacingPx);
+
+                    const chartBarsAndLabelsContainer = document.createElement('div');
+                    chartBarsAndLabelsContainer.className = 'chart-bars-and-labels-container';
+                    chartBarsAndLabelsContainer.style.minWidth = `${totalContentWidth + (1 * 16)}px`; // Adjust for internal px-4 padding
+
+                    data.forEach(entry => {
+                        const barUnit = document.createElement('div');
+                        barUnit.className = 'bar-unit';
+                        barUnit.style.minWidth = `${minBarUnitWidthPx}px`;
+                        barUnit.title = `${entry.date.replace(/(st|nd|rd|th)/, '')}: ${entry.dogs} dogs, ${entry.location !== 'N/A' ? entry.location : 'Location not specified'}`;
+
+                        const bar = document.createElement('div');
+                        bar.className = 'chart-bar';
+                        bar.style.height = `${(entry.dogs / chartYAxisMax) * 95}%`;
+                        if (entry.dogs > 0) {
+                            bar.style.minHeight = '25px'; // Ensure space for number
+                            const valueSpan = document.createElement('span');
+                            valueSpan.className = 'bar-value';
+                            valueSpan.textContent = entry.dogs;
+                            bar.appendChild(valueSpan);
+                        }
+
+                        const dateLabel = document.createElement('span');
+                        dateLabel.className = 'date-label';
+                        dateLabel.textContent = entry.date.replace(/(st|nd|rd|th)/, '');
+
+                        barUnit.appendChild(bar);
+                        barUnit.appendChild(dateLabel);
+                        chartBarsAndLabelsContainer.appendChild(barUnit);
+                    });
+
+                    chartAreaWrapper.appendChild(chartBarsAndLabelsContainer);
+                    chartWrapper.appendChild(chartAreaWrapper);
+
+                    const chartDescription = document.createElement('p');
+                    chartDescription.className = 'text-sm text-gray-600 mt-2';
+                    chartDescription.textContent = 'Dates represent capture days within the month.';
+                    chartWrapper.appendChild(chartDescription);
+
+                    container.appendChild(chartWrapper);
+                }
+            }
+
+            // Render overall trend chart
+            createBarChart('overallTrendChart', monthlyData, false);
+
+            // Render detailed monthly influx charts
+            const detailedChartsContainer = document.getElementById('detailedMonthlyInfluxCharts');
+            const chartMonthsWithDetails = monthlyData.filter(month => month.details && month.details.length > 0);
+
+            chartMonthsWithDetails.forEach(monthData => {
+                const monthSection = document.createElement('div');
+                monthSection.className = 'mb-10 p-4 bg-gray-50 rounded-xl';
+
+                const monthTitle = document.createElement('h3');
+                monthTitle.className = 'text-left sm:text-center text-2xl font-semibold text-purple-700 mb-4 pb-2';
+                monthTitle.textContent = `${monthData.month} Influx - Total: ${monthData.total} Dogs`;
+                monthSection.appendChild(monthTitle);
+
+                // Create a div specifically to hold the chart for this month
+                const monthlyChartDiv = document.createElement('div');
+                // No need for an ID here, as we pass the element directly
+                monthSection.appendChild(monthlyChartDiv);
+
+                // Call createBarChart with the new div element
+                createBarChart(monthlyChartDiv, monthData.details, true);
+
+                // Render the detailed list - "Daily Captured Area"
+                const listTitle = document.createElement('h4');
+                listTitle.className = 'text-left sm:text-left text-xl font-semibold text-gray-700 mb-3 mt-6';
+                listTitle.textContent = 'Daily Captured Area:';
+                monthSection.appendChild(listTitle);
+
+                const ul = document.createElement('ul');
+                ul.className = 'list-disc list-inside text-left text-gray-700 grid grid-cols-1 md:grid-cols-2 gap-2 text-base sm:text-lg';
+                monthData.details.forEach(detail => {
+                    const li = document.createElement('li');
+                    li.className = 'mb-1';
+                    li.innerHTML = `<span class="font-medium text-purple-800">${detail.date}:</span> ${detail.location !== 'N/A' ? detail.location : 'Location not specified'}`;
+                    ul.appendChild(li);
+                });
+                monthSection.appendChild(ul);
+
+                detailedChartsContainer.appendChild(monthSection);
+            });
+        });
+    </script>
+</body>
+</html>
